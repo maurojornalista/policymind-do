@@ -3,7 +3,9 @@
 **Plataforma Inteligente para Análise e Comparação de Apólices D&O**
 Projeto Final · Curso InsurMinds / I2A2 · Outubro de 2026
 
-**Integrantes:** Márcio de la Cruz Lui · Mauro José de Oliveira · Pedro Antônio Franceschini
+**Grupo:** Insight Builders
+
+**Integrantes:** Márcio de la Cruz Lui · Mauro José de Oliveira · Pedro Antonio Franceschini
 
 > Este projeto é acadêmico. As análises geradas não constituem recomendação de contratação e não substituem a avaliação de corretor de seguros, da seguradora ou parecer jurídico.
 

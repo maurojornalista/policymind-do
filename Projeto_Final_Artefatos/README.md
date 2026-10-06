@@ -2,6 +2,10 @@
 
 Artefatos de entrega do Projeto Final (InsurMinds / I2A2).
 
+**Grupo:** Insight Builders
+
+**Integrantes:** Márcio de la Cruz Lui · Mauro José de Oliveira · Pedro Antonio Franceschini
+
 | Arquivo | Conteúdo |
 |---|---|
 | `InsurMinds_Projeto_Final.pptx` | Pitch deck (12 slides, com notas do apresentador) |
@@ -11,4 +15,6 @@ Artefatos de entrega do Projeto Final (InsurMinds / I2A2).
 | `resultado_testes.txt` | Saída do `pytest -v` (33 testes) |
 | `capturas/` | Telas da aplicação na execução com IA (Groq · openai/gpt-oss-120b) |
 
-**Vídeo:** _(se o arquivo passar de 25 MB, colocar aqui o link do YouTube não listado ou do Google Drive)_
+**Vídeo:** [Download pelo Google Drive](https://drive.google.com/file/d/1DqeHoK1B9KERjEl45pnCDZnIUomIIHvS/view?usp=sharing)
+
+**Nome correto do arquivo do vídeo:** `InsurMinds_Projeto_Final.mp4`.

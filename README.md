@@ -50,7 +50,7 @@ flowchart LR
 | **AnalysisAgent** | Redige a síntese executiva com ganhos, perdas e pontos de atenção | **Sim** (OpenAI) |
 | **OrchestratorAgent** | Coordena o fluxo, registra o status/duração de cada etapa e trata erros | Não |
 
-Os detalhes estão no [Relatório Técnico](docs/relatorio_tecnico.md) (versão PDF em [`Projeto_Final_Artefatos/`](Projeto_Final_Artefatos/)). O pitch deck e o vídeo também estão nessa pasta.
+Os detalhes estão no [Relatório Técnico](docs/relatorio_tecnico.md) (versão PDF em [`Projeto_Final_Artefatos/`](Projeto_Final_Artefatos/)). O Pitch Deck está em `Projeto_Final_Artefatos/`. O vídeo está disponível por link do Google Drive, documentado no [README dessa pasta](Projeto_Final_Artefatos/README.md).
 
 ---
 
@@ -183,11 +183,13 @@ A lista completa está no relatório técnico.
 
 ---
 
+**Grupo:** Insight Builders
+
 ## Integrantes
 
 - Márcio de la Cruz Lui
 - Mauro José de Oliveira
-- Pedro Antônio Franceschini
+- Pedro Antonio Franceschini
 
 ## Licença
 
