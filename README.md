@@ -10,6 +10,12 @@ A solução usa uma **arquitetura multiagente**: cinco agentes especializados, c
 
 ---
 
+## Aplicação online
+
+**Deploy público:** https://policymind-do.streamlit.app/
+
+---
+
 ## Caso de demonstração
 
 Duas apólices reais da mesma empresa, em períodos consecutivos (renovação com troca de seguradora):
@@ -56,7 +62,7 @@ Os detalhes estão no [Relatório Técnico](docs/relatorio_tecnico.md) (versão 
 
 ## Tecnologias
 
-Python 3.12+ · Streamlit · PyMuPDF · Tesseract OCR (pytesseract) · API compatível com OpenAI (validado com **Groq · openai/gpt-oss-120b**; também funciona com OpenAI e Grok) · Pydantic v2 · Pandas · SQLite · Pytest · python-dotenv
+Python 3.12+ · Streamlit · PyMuPDF · Tesseract OCR (pytesseract) · **OpenAI API / gpt-4o-mini** · Pydantic v2 · Pandas · Plotly · SQLite · Pytest · python-dotenv
 
 Não usamos LangChain, CrewAI ou similares: os agentes são classes Python explícitas, pequenas e testáveis.
 
@@ -75,8 +81,8 @@ Não usamos LangChain, CrewAI ou similares: os agentes são classes Python expl�
 ### 2. Clonar e instalar dependências
 
 ```bash
-git clone https://github.com/<usuario>/<repositorio>.git
-cd <repositorio>
+git clone https://github.com/maurojornalista/policymind-do.git
+cd policymind-do
 python -m venv .venv
 # Windows:  .venv\Scripts\activate
 # Linux/Mac: source .venv/bin/activate
@@ -97,26 +103,11 @@ Abra o arquivo `.env` e preencha:
 ```env
 OPENAI_API_KEY=sk-...sua-chave...
 OPENAI_MODEL=gpt-4o-mini
+OPENAI_BASE_URL=https://api.openai.com/v1
+MAX_CHARS_LLM=120000
 ```
 
-**Usando o Groq (configuração validada no projeto, plano gratuito):** crie a chave em <https://console.groq.com>.
-
-```env
-OPENAI_API_KEY=gsk_...sua-chave...
-OPENAI_MODEL=openai/gpt-oss-120b
-OPENAI_BASE_URL=https://api.groq.com/openai/v1
-MAX_CHARS_LLM=16000
-```
-
-`MAX_CHARS_LLM=16000` mantém cada pedido abaixo do limite de 8.000 tokens por minuto do plano gratuito.
-
-**Usando o Grok (xAI) ou outro provedor compatível com a API da OpenAI:**
-
-```env
-OPENAI_API_KEY=xai-...sua-chave...
-OPENAI_MODEL=<modelo listado em console.x.ai>
-OPENAI_BASE_URL=https://api.x.ai/v1
-```
+A entrega final utiliza **OpenAI / gpt-4o-mini**. O cliente também aceita endpoints compatíveis com a API da OpenAI por configuração.
 
 O arquivo `.env` está no `.gitignore` e **nunca** deve ser commitado. Nenhuma chave fica no código.
 
@@ -143,7 +134,7 @@ Acesse <http://localhost:8501>. Depois:
 pytest -v
 ```
 
-Os testes usam apólices **sintéticas** geradas em memória e um LLM simulado, por isso rodam sem chave de API e sem os documentos reais.
+Os testes usam apólices **sintéticas** geradas em memória e um LLM simulado, por isso rodam sem chave de API e sem os documentos reais. Na validação local final de 06/10/2026 foram coletados **33 testes**: **32 passaram, 1 foi ignorado** por ausência do executável Tesseract e **0 falharam**.
 
 ---
 
@@ -164,7 +155,7 @@ src/
     normalization_agent.py  NormalizationAgent
     comparison_agent.py     ComparisonAgent
     analysis_agent.py       AnalysisAgent
-tests/                      Testes Pytest (33 testes)
+tests/                      Testes Pytest (33 coletados; 32 aprovados e 1 ignorado no ambiente final)
 docs/relatorio_tecnico.md   Relatório técnico
 data/                       Documentos de exemplo (apólices reais fora do Git)
 Projeto_Final_Artefatos/    Pitch deck, vídeo e demais artefatos
