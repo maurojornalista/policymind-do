@@ -60,7 +60,7 @@ flowchart LR
     O -->|resultados| U
     E <-->|cache| DB[("SQLite")]
     E -.->|IA indisponível| R["Extrator por regras<br/>(marcado SEM IA)"]
-    L[["LLM via API compatível com OpenAI<br/>(Groq · gpt-oss-120b)"]]
+    L[["OpenAI API<br/>gpt-4o-mini"]]
     L -.- E
     L -.- A
 ```
@@ -79,7 +79,7 @@ flowchart LR
 | Streamlit | Interface | Interface funcional em Python puro, ideal para demonstração |
 | PyMuPDF | Leitura de PDF | Rápido e com reconstrução da ordem visual (`sort=True`), essencial para formulários tabulares como a apólice Tokio Marine |
 | Tesseract (pytesseract) | OCR | Gratuito, local e com suporte a português; usado só como fallback |
-| API compatível com OpenAI (provedor e modelo configuráveis) | IA generativa | Extração estruturada em modo JSON e redação da análise. Na validação usamos o **Groq** com o modelo **`openai/gpt-oss-120b`** (plano gratuito); OpenAI, Grok (xAI) ou outros provedores compatíveis funcionam trocando 3 variáveis no `.env` |
+| API compatível com OpenAI (provedor e modelo configuráveis) | IA generativa | Extração estruturada em modo JSON e redação da análise. A configuração final da entrega utiliza **OpenAI / `gpt-4o-mini`**; o cliente permanece compatível com endpoints no padrão OpenAI. |
 | Pydantic v2 | Schemas | Valida a saída do LLM e define os contratos entre agentes |
 | Pandas | Tabelas | Montagem das tabelas comparativas da interface |
 | SQLite | Armazenamento | Cache das extrações (evita custo repetido) e histórico consultável, sem servidor |
@@ -102,7 +102,7 @@ O OCR é **fallback, não requisito**: todos os PDFs do caso principal têm text
 ### 6.2 PolicyExtractionAgent (`src/agents/policy_extraction_agent.py`)
 
 - **Entrada:** `DocumentoProcessado`.
-- **Seleção de texto:** documentos acima de `MAX_CHARS_LLM` (120 mil caracteres por padrão; 16 mil no plano gratuito do Groq) são reduzidos em três passos:
+- **Seleção de texto:** documentos acima de `MAX_CHARS_LLM` (120 mil caracteres por padrão na configuração final) são reduzidos em três passos:
   1. espaços usados só para alinhar colunas são compactados, o que economiza tokens sem perder informação;
   2. as três primeiras páginas (dados gerais e prêmio) e as páginas com dados críticos de especificação (LMG, franquia, tabelas "% do LMI") entram primeiro;
   3. as demais páginas entram por densidade de termos-chave (prêmio, franquia, LMI, exclusão etc.).
@@ -159,7 +159,7 @@ sequenceDiagram
     participant D as DocumentAgent
     participant E as PolicyExtractionAgent
     participant DB as SQLite
-    participant L as LLM (Groq)
+    participant L as LLM (OpenAI / gpt-4o-mini)
     participant N as NormalizationAgent
     participant C as ComparisonAgent
     participant A as AnalysisAgent
@@ -209,13 +209,13 @@ sequenceDiagram
      "chave": "penhora_bloqueio_contas", "limite": "100% do LMI", "pagina": 5}
   ],
   "metodo_extracao": "llm",
-  "modelo_llm": "openai/gpt-oss-120b"
+  "modelo_llm": "gpt-4o-mini"
 }
 ```
 
 ## 9. Resultados obtidos
 
-Execução de validação em 05/10/2026, no caso Sumitomo, com IA generativa: **Groq · `openai/gpt-oss-120b`** e `MAX_CHARS_LLM=16000`. Os **5 agentes concluíram com sucesso** e as duas apólices foram extraídas pela IA.
+Na entrega final, o caso Sumitomo foi validado com IA generativa **OpenAI / `gpt-4o-mini`**, inclusive no deploy público do Streamlit. Os **5 agentes concluíram com sucesso** e as duas apólices foram extraídas pela IA.
 
 | Etapa | Status | Tempo |
 |---|---|---|
@@ -223,7 +223,7 @@ Execução de validação em 05/10/2026, no caso Sumitomo, com IA generativa: **
 | PolicyExtractionAgent (2 apólices, IA) | concluído | 8,5 s |
 | NormalizationAgent | concluído | < 0,1 s |
 | ComparisonAgent | concluído | < 0,1 s |
-| AnalysisAgent (IA) | concluído | 15,3 s (inclui espera pelo limite por minuto do plano gratuito) |
+| AnalysisAgent (IA) | concluído | 15,3 s (tempo histórico de validação anterior; não representa a execução final OpenAI) |
 
 Principais dados comparados:
 
@@ -246,11 +246,11 @@ Principal achado demonstrável: a ferramenta identifica de forma objetiva a **re
 
 ### 9.1 Problemas encontrados na validação e como foram resolvidos
 
-A validação com um provedor real expôs quatro problemas, todos corrigidos e cobertos por testes ou regras explícitas:
+Uma validação anterior com provedor compatível expôs problemas úteis de engenharia, posteriormente corrigidos e incorporados à versão final:
 
 | Problema observado | Causa | Solução |
 |---|---|---|
-| Extração da apólice AXA caiu no modo "regras (SEM IA)" | Erro 413: o pedido tinha 8.189 tokens, e o plano gratuito do Groq permite 8.000 tokens por minuto | Compactação de espaços, priorização das páginas críticas e `MAX_CHARS_LLM=16000` |
+| Extração da apólice AXA caiu no modo "regras (SEM IA)" | Limite de tokens do provedor usado na validação anterior | Compactação de espaços e priorização das páginas críticas |
 | Página da franquia poderia ser cortada ao reduzir o documento | A relevância era medida por contagem absoluta de termos, favorecendo páginas de texto longo | Relevância por densidade de termos e prioridade para páginas com LMG, franquia e tabelas "% do LMI" |
 | A IA listou o LMG e a franquia da AXA como "ganhos" | O dado não existe no documento da Tokio; não há como afirmar que houve inclusão | Regra no prompt: itens presentes em só um documento vão para "pontos de atenção", nunca para ganhos ou perdas |
 | Valores como "R 10.880,98 para R" exibidos com fonte de fórmula | O Streamlit interpreta o texto entre dois "$" como LaTeX | Escape do caractere "$" nos textos gerados pela IA |
@@ -259,7 +259,7 @@ Esses ajustes reforçam o princípio central do projeto: **na dúvida, o sistema
 
 ## 10. Testes automatizados
 
-O comando `pytest -v` executa **33 testes**, todos com documentos sintéticos e um LLM simulado:
+Na validação local final de 06/10/2026, `pytest -v` coletou **33 testes**: **32 passaram, 1 foi ignorado por ausência do executável Tesseract e 0 falharam**. Os testes usam documentos sintéticos e um LLM simulado:
 
 | Arquivo | O que verifica |
 |---|---|
@@ -278,13 +278,13 @@ O comando `pytest -v` executa **33 testes**, todos com documentos sintéticos e 
 ## 12. Limitações conhecidas
 
 1. **Documento incompleto:** a apólice Tokio Marine disponível tem só o frontispício (2 páginas). LMG, franquia e coberturas não podem ser comparados.
-2. **Documentos longos e planos gratuitos:** só as páginas mais relevantes vão ao LLM, e alguma cláusula pode ficar de fora. No plano gratuito do Groq (8.000 tokens por minuto), o limite usado é de 16 mil caracteres: a apólice AXA envia as páginas 1 a 7 e 13 de 13, mas as Condições Gerais (52 a 104 páginas) ficam muito reduzidas. Um plano pago ou um modelo com mais capacidade resolve.
+2. **Documentos longos:** só as páginas mais relevantes vão ao LLM, e alguma cláusula pode ficar de fora. A configuração final usa `MAX_CHARS_LLM=120000`, mas limites de contexto, tokens e custo continuam sendo restrições relevantes.
 3. **Dicionário de sinônimos limitado:** cobre os conceitos D&O mais comuns. Termos novos são comparados pelo nome literal.
 4. **Guardrail por correspondência textual:** pode descartar um valor correto se o LLM reformatar demais o trecho. Isso é seguro, mas gera falso negativo.
 5. **OCR:** a qualidade depende da digitalização. O Tesseract não interpreta tabelas complexas tão bem quanto serviços como o Textract.
 6. **Extrator por regras:** foi calibrado nos layouts de exemplo e serve apenas como contingência.
 7. **Comparação de exclusões:** é feita por conceito (ex.: "atos dolosos") e não analisa a redação jurídica detalhada de cada cláusula.
-8. **Custo e privacidade:** o texto do documento é enviado ao provedor de IA (Groq, na validação). Para dados sensíveis em produção, seria necessário avaliar contrato e LGPD, ou usar um modelo local.
+8. **Custo e privacidade:** o texto do documento é enviado ao provedor de IA. Para dados sensíveis em produção, seria necessário avaliar contrato, LGPD e, quando aplicável, modelos locais.
 
 ## 13. Possibilidades de evolução
 
